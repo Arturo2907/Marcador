@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Marcador</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #0f0f11;
+            color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Selector de Días */
+        .dias-bar {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 360px;
+            justify-content: space-between;
+        }
+
+        .btn-dia {
+            flex: 1;
+            padding: 10px 0;
+            background: #18181c;
+            border: 1px solid #2a2a32;
+            color: #555560;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: not-allowed;
+            transition: all 0.2s ease;
+        }
+
+        .btn-dia.unlocked {
+            color: #aaaaaa;
+            cursor: pointer;
+            border-color: #33333f;
+        }
+
+        .btn-dia.active {
+            background: #2a2a35;
+            color: #ffffff;
+            border-color: #555565;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Marcador Principal */
+        .marcador-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 25px 0 20px 0;
+        }
+
+        .score {
+            font-size: 5.5rem;
+            font-weight: 800;
+            min-width: 80px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .score-rojo { color: #ff5252; }
+        .score-azul { color: #448aff; }
+
+        .divider {
+            font-size: 2.5rem;
+            color: #333338;
+            font-weight: 300;
+        }
+
+        /* Botones Principales */
+        .botones-container {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 22px 10px;
+            border: none;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            transition: transform 0.1s ease, filter 0.2s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            filter: brightness(0.9);
+        }
+
+        .btn-rojo { background-color: #e53935; }
+        .btn-azul { background-color: #1e88e5; }
+
+        /* Tarjeta de Gran Total Acumulado */
+        .total-acumulado-card {
+            width: 100%;
+            max-width: 360px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #181820, #121216);
+            border-radius: 16px;
+            padding: 14px 18px;
+            border: 1px solid #282832;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-titulo {
+            font-size: 0.8rem;
+            color: #888890;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .total-puntos {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Contenedor de Acciones */
+        .acciones-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .btn-accion-principal {
+            width: 100%;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            color: #0f0f11;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+        }
+
+        .btn-accion-principal:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secundario-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secundario {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #888890;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .btn-secundario:active {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Historial */
+        .historial-container {
+            width: 100%;
+            max-width: 360px;
+            margin-top: 20px;
+            background-color: #16161a;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #222228;
+        }
+
+        .historial-header {
+            font-size: 0.8rem;
+            color: #666670;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .historial-lista {
+            max-height: 120px;
+            overflow-y: auto;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .historial-item {
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: #1e1e24;
+            border-radius: 10px;
+        }
+
+        .tag-rojo { color: #ff5252; font-weight: bold; }
+        .tag-azul { color: #448aff; font-weight: bold; }
+        .hora { color: #555560; }
+
+        /* Modales */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+            z-index: 100;
+        }
+
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-box {
+            background: #1e1e24;
+            border: 1px solid #33333f;
+            border-radius: 20px;
+            padding: 24px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .modal-box h3 { font-size: 1.1rem; margin-bottom: 10px; color: #ffffff; }
+        .modal-box p { font-size: 0.85rem; color: #aaaaaa; margin-bottom: 20px; }
+
+        .modal-acciones { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+        .modal-btn-cancelar { background: #2a2a35; color: #cccccc; }
+        .modal-btn-confirmar { background: #ff5252; color: #ffffff; }
+
+        /* Modal Ganador */
+        .ganador-box {
+            border: 2px solid #ffd700;
+            background: radial-gradient(circle at top, #2a2a38, #16161c);
+        }
+
+        .trofeo-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            display: inline-block;
+            animation: bounce 1s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+
+        .ganador-titulo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .ganador-mensaje {
+            font-size: 0.9rem;
+            color: #dddddd;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DE NAVEGACIÓN DÍAS -->
+    <div class="dias-bar" id="dias-bar">
+        <button class="btn-dia unlocked active" onclick="cambiarDia(1)">Día 1</button>
+        <button class="btn-dia" id="btn-dia-2" onclick="cambiarDia(2)">Día 2</button>
+        <button class="btn-dia" id="btn-dia-3" onclick="cambiarDia(3)">Día 3</button>
+        <button class="btn-dia" id="btn-dia-4" onclick="cambiarDia(4)">Día 4</button>
+        <button class="btn-dia" id="btn-dia-5" onclick="cambiarDia(5)">Día 5</button>
+    </div>
+
+    <!-- MARCADOR DEL DÍA -->
+    <div class="marcador-container">
+        <div id="puntos-rojo" class="score score-rojo">0</div>
+        <div class="divider">-</div>
+        <div id="puntos-azul" class="score score-azul">0</div>
+    </div>
+
+    <!-- BOTONES PRINCIPALES -->
+    <div class="botones-container">
+        <button class="btn btn-rojo" onclick="sumarPunto('rojo')">+ ROJO</button>
+        <button class="btn btn-azul" onclick="sumarPunto('azul')">+ AZUL</button>
+    </div>
+
+    <!-- GRAN TOTAL ACUMULADO -->
+    <div class="total-acumulado-card">
+        <span class="total-titulo">Suma Total (5 Días)</span>
+        <span class="total-puntos">
+            <span class="score-rojo" id="total-rojo">0</span> - <span class="score-azul" id="total-azul">0</span>
+        </span>
+    </div>
+
+    <!-- BOTONES ACCIÓN -->
+    <div class="acciones-container">
+        <button class="btn-secundario" id="btn-finalizar" onclick="finalizarDia()">Finalizar día actual ➔</button>
+        <button class="btn-accion-principal" id="btn-ver-ganador" style="display: none;" onclick="mostrarGanador()">🏆 Ver Resultado Final</button>
+        
+        <!-- Oculto hasta completar el torneo -->
+        <div class="btn-secundario-row" id="row-reiniciar" style="display: none;">
+            <button class="btn-secundario" onclick="abrirModalReset()">Reiniciar torneo completo</button>
+        </div>
+    </div>
+
+    <!-- HISTORIAL DEL DÍA -->
+    <div class="historial-container">
+        <div class="historial-header">
+            <span id="titulo-historial">Registro Día 1</span>
+            <span id="total-registros">0 anotaciones</span>
+        </div>
+        <ul id="lista-historial" class="historial-lista"></ul>
+    </div>
+
+    <!-- MODAL DE RESET -->
+    <div id="modal-reset" class="modal-overlay">
+        <div class="modal-box">
+            <h3>¿Reiniciar el torneo?</h3>
+            <p>Se borrarán los 5 días y sus marcadores acumulados para empezar de nuevo.</p>
+            <div class="modal-acciones">
+                <button class="modal-btn modal-btn-cancelar" onclick="cerrarModalReset()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirmar" onclick="confirmarReiniciarTodo()">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE GANADOR FINAL -->
+    <div id="modal-ganador" class="modal-overlay">
+        <div class="modal-box ganador-box">
+            <div class="trofeo-icon">🏆</div>
+            <div class="ganador-titulo" id="nombre-ganador">¡EQUIPO ROJO!</div>
+            <p class="ganador-mensaje" id="mensaje-felicitaciones">¡Felicidades por dominar el torneo durante los 5 días de competencia!</p>
+            <button class="modal-btn modal-btn-cancelar" style="width: 100%;" onclick="cerrarModalGanador()">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        let estado = JSON.parse(localStorage.getItem('marcador_5dias_data')) || {
+            diaActual: 1,
+            desbloqueadoHasta: 1,
+            torneoFinalizado: false,
+            dias: {
+                1: { rojo: 0, azul: 0, historial: [] },
+                2: { rojo: 0, azul: 0, historial: [] },
+                3: { rojo: 0, azul: 0, historial: [] },
+                4: { rojo: 0, azul: 0, historial: [] },
+                5: { rojo: 0, azul: 0, historial: [] }
+            }
+        };
+
+        const elemRojo = document.getElementById('puntos-rojo');
+        const elemAzul = document.getElementById('puntos-azul');
+        const elemTotalRojo = document.getElementById('total-rojo');
+        const elemTotalAzul = document.getElementById('total-azul');
+        const listaHistorial = document.getElementById('lista-historial');
+        const totalRegistros = document.getElementById('total-registros');
+        const tituloHistorial = document.getElementById('titulo-historial');
+        const btnFinalizar = document.getElementById('btn-finalizar');
+        const btnVerGanador = document.getElementById('btn-ver-ganador');
+        const rowReiniciar = document.getElementById('row-reiniciar');
+
+        actualizarInterfaz();
+
+        function cambiarDia(numDia) {
+            if (numDia <= estado.desbloqueadoHasta) {
+                estado.diaActual = numDia;
+                guardarYActualizar();
+            }
+        }
+
+        function sumarPunto(equipo) {
+            const dia = estado.dias[estado.diaActual];
+            const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            if (equipo === 'rojo') {
+                dia.rojo++;
+                dia.historial.unshift({ equipo: 'Rojo', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
+            } else if (equipo === 'azul') {
+                dia.azul++;
+                dia.historial.unshift({ equipo: 'Azul', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
+            }
+
+            guardarYActualizar();
+        }
+
+        function finalizarDia() {
+            if (estado.diaActual === estado.desbloqueadoHasta) {
+                if (estado.desbloqueadoHasta < 5) {
+                    estado.desbloqueadoHasta++;
+                    estado.diaActual = estado.desbloqueadoHasta;
+                } else if (estado.desbloqueadoHasta === 5) {
+                    estado.torneoFinalizado = true;
+                    mostrarGanador();
+                }
+                guardarYActualizar();
+            }
+        }
+
+        function guardarYActualizar() {
+            localStorage.setItem('marcador_5dias_data', JSON.stringify(estado));
+            actualizarInterfaz();
+        }
+
+        function actualizarInterfaz() {
+            const diaData = estado.dias[estado.diaActual];
+
+            elemRojo.textContent = diaData.rojo;
+            elemAzul.textContent = diaData.azul;
+
+            tituloHistorial.textContent = `Registro Día ${estado.diaActual}`;
+            totalRegistros.textContent = `${diaData.historial.length} anotaciones`;
+            listaHistorial.innerHTML = '';
+            diaData.historial.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'historial-item';
+                const claseTag = item.equipo === 'Rojo' ? 'tag-rojo' : 'tag-azul';
+                li.innerHTML = `
+                    <span>Punto <span class="${claseTag}">${item.equipo}</span> (${item.marcador})</span>
+                    <span class="hora">${item.hora}</span>
+                `;
+                listaHistorial.appendChild(li);
+            });
+
+            // Actualizar botones de navegación
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(i === 1 ? 'dias-bar' : `btn-dia-${i}`)?.children[i-1] || document.getElementById(`btn-dia-${i}`);
+                if (el) {
+                    el.classList.toggle('unlocked', i <= estado.desbloqueadoHasta);
+                    el.classList.toggle('active', i === estado.diaActual);
+                }
+            }
+
+            // Calcular Gran Total
+            let totalRojo = 0;
+            let totalAzul = 0;
+            for (let i = 1; i <= 5; i++) {
+                totalRojo += estado.dias[i].rojo;
+                totalAzul += estado.dias[i].azul;
+            }
+            elemTotalRojo.textContent = totalRojo;
+            elemTotalAzul.textContent = totalAzul;
+
+            // Control de visibilidad según avance
+            if (estado.torneoFinalizado) {
+                btnFinalizar.style.display = 'none';
+                btnVerGanador.style.display = 'block';
+                rowReiniciar.style.display = 'flex'; // Muestra el botón de reiniciar solo al finalizar el Día 5
+            } else {
+                btnVerGanador.style.display = 'none';
+                rowReiniciar.style.display = 'none'; // Oculto durante los días 1 a 5
+                btnFinalizar.style.display = 'block';
+                
+                if (estado.diaActual === 5) {
+                    btnFinalizar.textContent = 'Finalizar Torneo (Día 5) 🏁';
+                } else {
+                    btnFinalizar.textContent = `Finalizar día ${estado.diaActual} ➔`;
+                }
+            }
+        }
+
+        function mostrarGanador() {
+            let totalRojo = 0;
+            let totalAzul = 0;
+            for (let i = 1; i <= 5; i++) {
+                totalRojo += estado.dias[i].rojo;
+                totalAzul += estado.dias[i].azul;
+            }
+
+            const elemNombre = document.getElementById('nombre-ganador');
+            const elemMensaje = document.getElementById('mensaje-felicitaciones');
+
+            if (totalRojo > totalAzul) {
+                elemNombre.textContent = '¡EQUIPO ROJO!';
+                elemNombre.style.color = '#ff5252';
+                elemMensaje.textContent = `¡Muchas felicidades al Equipo Rojo por su victoria con ${totalRojo} puntos acumulados en los 5 días! 🎉🔴`;
+            } else if (totalAzul > totalRojo) {
+                elemNombre.textContent = '¡EQUIPO AZUL!';
+                elemNombre.style.color = '#448aff';
+                elemMensaje.textContent = `¡Muchas felicidades al Equipo Azul por llevarse el torneo con ${totalAzul} puntos totales! 🎉🔵`;
+            } else {
+                elemNombre.textContent = '¡EMPATE TÉCNICO!';
+                elemNombre.style.color = '#ffd700';
+                elemMensaje.textContent = `¡Increíble duelo! Ambos equipos terminaron igualados con ${totalRojo} puntos. 🤝`;
+            }
+
+            document.getElementById('modal-ganador').classList.add('active');
+        }
+
+        function cerrarModalGanador() {
+            document.getElementById('modal-ganador').classList.remove('active');
+        }
+
+        function abrirModalReset() { document.getElementById('modal-reset').classList.add('active'); }
+        function cerrarModalReset() { document.getElementById('modal-reset').classList.remove('active'); }
+
+        function confirmarReiniciarTodo() {
+            estado = {
+                diaActual: 1,
+                desbloqueadoHasta: 1,
+                torneoFinalizado: false,
+                dias: {
+                    1: { rojo: 0, azul: 0, historial: [] },
+                    2: { rojo: 0, azul: 0, historial: [] },
+                    3: { rojo: 0, azul: 0, historial: [] },
+                    4: { rojo: 0, azul: 0, historial: [] },
+                    5: { rojo: 0, azul: 0, historial: [] }
+                }
+            };
+            guardarYActualizar();
+            cerrarModalReset();
+        }
+    </script>
+</body>
+</html>
