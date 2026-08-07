@@ -6,7 +6,6 @@
     <title>Marcador</title>
     <link rel="icon" type="image/png" href="marcador.png">
     
-    
     <style>
         * {
             box-sizing: border-box;
@@ -63,28 +62,33 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
-        /* Marcador Principal */
+        /* Marcador adaptable para números grandes */
         .marcador-container {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
+            gap: 8px;
             margin: 25px 0 20px 0;
+            width: 100%;
+            max-width: 360px;
         }
 
         .score {
-            font-size: 5.5rem;
+            font-size: clamp(2rem, 8vw, 4rem);
             font-weight: 800;
-            min-width: 80px;
+            flex: 1;
             text-align: center;
             line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .score-rojo { color: #ff5252; }
         .score-azul { color: #448aff; }
 
         .divider {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             color: #333338;
             font-weight: 300;
         }
@@ -335,7 +339,6 @@
         <button class="btn-secundario" id="btn-finalizar" onclick="finalizarDia()">Finalizar día actual ➔</button>
         <button class="btn-accion-principal" id="btn-ver-ganador" style="display: none;" onclick="mostrarGanador()">🏆 Ver Resultado Final</button>
         
-        <!-- Oculto hasta completar el torneo -->
         <div class="btn-secundario-row" id="row-reiniciar" style="display: none;">
             <button class="btn-secundario" onclick="abrirModalReset()">Reiniciar torneo completo</button>
         </div>
@@ -399,6 +402,17 @@
 
         actualizarInterfaz();
 
+        // Función para abreviar cifras gigantes y dar formato limpio
+        function formatearNumero(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+            }
+            if (num >= 10000) {
+                return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+            }
+            return num.toLocaleString('es-MX');
+        }
+
         function cambiarDia(numDia) {
             if (numDia <= estado.desbloqueadoHasta) {
                 estado.diaActual = numDia;
@@ -411,11 +425,11 @@
             const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             if (equipo === 'rojo') {
-                dia.rojo+=200;
-                dia.historial.unshift({ equipo: 'Rojo', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
+                dia.rojo += 200;
+                dia.historial.unshift({ equipo: 'Rojo', hora: horaActual, marcador: `${formatearNumero(dia.rojo)} - ${formatearNumero(dia.azul)}` });
             } else if (equipo === 'azul') {
-                dia.azul+=200;
-                dia.historial.unshift({ equipo: 'Azul', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
+                dia.azul += 200;
+                dia.historial.unshift({ equipo: 'Azul', hora: horaActual, marcador: `${formatearNumero(dia.rojo)} - ${formatearNumero(dia.azul)}` });
             }
 
             guardarYActualizar();
@@ -442,8 +456,8 @@
         function actualizarInterfaz() {
             const diaData = estado.dias[estado.diaActual];
 
-            elemRojo.textContent = diaData.rojo;
-            elemAzul.textContent = diaData.azul;
+            elemRojo.textContent = formatearNumero(diaData.rojo);
+            elemAzul.textContent = formatearNumero(diaData.azul);
 
             tituloHistorial.textContent = `Registro Día ${estado.diaActual}`;
             totalRegistros.textContent = `${diaData.historial.length} anotaciones`;
@@ -475,17 +489,17 @@
                 totalRojo += estado.dias[i].rojo;
                 totalAzul += estado.dias[i].azul;
             }
-            elemTotalRojo.textContent = totalRojo;
-            elemTotalAzul.textContent = totalAzul;
+            elemTotalRojo.textContent = formatearNumero(totalRojo);
+            elemTotalAzul.textContent = formatearNumero(totalAzul);
 
             // Control de visibilidad según avance
             if (estado.torneoFinalizado) {
                 btnFinalizar.style.display = 'none';
                 btnVerGanador.style.display = 'block';
-                rowReiniciar.style.display = 'flex'; // Muestra el botón de reiniciar solo al finalizar el Día 5
+                rowReiniciar.style.display = 'flex';
             } else {
                 btnVerGanador.style.display = 'none';
-                rowReiniciar.style.display = 'none'; // Oculto durante los días 1 a 5
+                rowReiniciar.style.display = 'none';
                 btnFinalizar.style.display = 'block';
                 
                 if (estado.diaActual === 5) {
@@ -510,15 +524,15 @@
             if (totalRojo > totalAzul) {
                 elemNombre.textContent = '¡EQUIPO ROJO!';
                 elemNombre.style.color = '#ff5252';
-                elemMensaje.textContent = `¡Muchas felicidades al Equipo Rojo por su victoria con ${totalRojo} puntos acumulados en los 5 días! 🎉🔴`;
+                elemMensaje.textContent = `¡Muchas felicidades al Equipo Rojo por su victoria con ${formatearNumero(totalRojo)} puntos acumulados en los 5 días! 🎉🔴`;
             } else if (totalAzul > totalRojo) {
                 elemNombre.textContent = '¡EQUIPO AZUL!';
                 elemNombre.style.color = '#448aff';
-                elemMensaje.textContent = `¡Muchas felicidades al Equipo Azul por llevarse el torneo con ${totalAzul} puntos totales! 🎉🔵`;
+                elemMensaje.textContent = `¡Muchas felicidades al Equipo Azul por llevarse el torneo con ${formatearNumero(totalAzul)} puntos totales! 🎉🔵`;
             } else {
                 elemNombre.textContent = '¡EMPATE TÉCNICO!';
                 elemNombre.style.color = '#ffd700';
-                elemMensaje.textContent = `¡Increíble duelo! Ambos equipos terminaron igualados con ${totalRojo} puntos. 🤝`;
+                elemMensaje.textContent = `¡Increíble duelo! Ambos equipos terminaron igualados con ${formatearNumero(totalRojo)} puntos. 🤝`;
             }
 
             document.getElementById('modal-ganador').classList.add('active');
