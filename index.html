@@ -411,10 +411,10 @@
             const horaActual = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             if (equipo === 'rojo') {
-                dia.rojo+=50;
+                dia.rojo+=200;
                 dia.historial.unshift({ equipo: 'Rojo', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
             } else if (equipo === 'azul') {
-                dia.azul+=50;
+                dia.azul+=200;
                 dia.historial.unshift({ equipo: 'Azul', hora: horaActual, marcador: `${dia.rojo} - ${dia.azul}` });
             }
 
